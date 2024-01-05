@@ -4,6 +4,7 @@ class ChatContactModel{
   DateTime timeSent;
   String contactId;
   String profileImage;
+  bool? isOnline ;
 
   ChatContactModel({
     required this.name,
@@ -11,6 +12,7 @@ class ChatContactModel{
     required this.timeSent,
     required this.contactId,
     required this.profileImage,
+    this.isOnline,
   });
 
   // fromJson factory constructor
@@ -21,6 +23,7 @@ class ChatContactModel{
       timeSent: DateTime.parse(json['timeSent']),
       contactId: json['contactId'],
       profileImage: json['profileImage'],
+      isOnline: json['isOnline']??false,
     );
   }
 
@@ -32,6 +35,7 @@ class ChatContactModel{
       'timeSent': timeSent.toIso8601String(),
       'contactId': contactId,
       'profileImage': profileImage,
+      'isOnline': isOnline ?? false,
     };
   }
 }

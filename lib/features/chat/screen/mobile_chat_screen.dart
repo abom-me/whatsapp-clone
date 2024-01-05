@@ -4,15 +4,13 @@ import 'package:whatsapp_clone/models/user_model.dart';
 import '../../../colors.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../../info.dart';
-import '../../../widgets/chat_list.dart';
+import 'chat_list.dart';
 import 'bottom_chat_field.dart';
 
 class MobileChatScreen extends ConsumerWidget {
   static const routeName = '/mobile-chat-screen';
-  const MobileChatScreen({Key? key, required this.name, required this.profileImage, required this.phone, required this.uid}) : super(key: key);
+  const MobileChatScreen({Key? key, required this.name, required this.uid}) : super(key: key);
 final String name;
-final String profileImage;
-final String phone;
 final String uid;
   @override
   Widget build(BuildContext context,WidgetRef ref) {
@@ -77,8 +75,8 @@ final String uid;
       ),
       body: Column(
         children: [
-          const Expanded(
-            child: ChatList(),
+           Expanded(
+            child: ChatList(receiverId: uid,),
           ),
           BottomChatField(receiverId: uid,),
         ],

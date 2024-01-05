@@ -25,6 +25,12 @@ class AuthRepository {
 
   AuthRepository({required this.firebaseAuth, required this.firebaseFirestore});
 
+  void setUserState({ required bool isOnline})  async{
+    var userState = firebaseFirestore.collection("users").doc(firebaseAuth.currentUser!.uid);
+   await userState.update({"isOnline": isOnline});
+  }
+
+
   void signInWithPhoneNumber(BuildContext context, String phone) async {
     try {
       await firebaseAuth.verifyPhoneNumber(

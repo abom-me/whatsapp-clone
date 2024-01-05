@@ -58,7 +58,7 @@ Text("WhatsApp will send an SMS message to verify your phone number.",style: Tex
                   flex: 1,
                   child: Container(
                     margin: const EdgeInsets.all(10),
-                    child: const Text("+91"),
+                    child: const Text("+968"),
                   ),
                 ),
                 Expanded(

@@ -29,6 +29,9 @@ final ProviderRef ref ;
     authRepository.signInWithPhoneNumber(context,phone);
   }
 
+  void setUserState(bool isOnline){
+    authRepository.setUserState( isOnline: isOnline);
+  }
 
   void verifyOTP( BuildContext context,String verificationId,String smsCode,){
     authRepository.verifyOTP(context,verificationId,smsCode);

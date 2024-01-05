@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/common/enums/messages_enume.dart';
+import 'package:whatsapp_clone/info.dart';
 import 'package:whatsapp_clone/models/chat_contact_model.dart';
 import 'package:whatsapp_clone/models/user_model.dart';
 
@@ -20,6 +21,58 @@ class ChatRepository {
   final FirebaseAuth firebaseAuth;
 
   ChatRepository({required this.firestore, required this.firebaseAuth});
+
+
+  Stream<List<ChatContactModel>> getChatContacts() {
+
+    var currentUser = firebaseAuth.currentUser;
+    var chatContacts = firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .collection('chats')
+        .orderBy('timeSent', descending: true)
+        .snapshots()
+        .asyncMap((event) async{
+          List<ChatContactModel> contacts=[];
+     for(var doc in event.docs){
+
+       var chatContact=ChatContactModel.fromJson(doc.data());
+
+
+       var userData=await firestore.collection('users').doc(chatContact.contactId).get();
+       print(userData.data());
+var user=UserModel.fromJson(userData.data()!);
+
+       contacts.add(ChatContactModel(name: user.name!, lastMessage: chatContact.lastMessage, timeSent: chatContact.timeSent!, contactId: chatContact.contactId, profileImage: user.profileImage!, isOnline: user.isOnline!));
+       return contacts;
+     }
+          return contacts;
+    });
+return chatContacts;
+  }
+
+
+Stream<List<Messages>> getMessages({required String receiverId}) {
+    var currentUser = firebaseAuth.currentUser;
+    var messages = firestore
+        .collection('users')
+        .doc(currentUser!.uid)
+        .collection('chats')
+        .doc(receiverId)
+        .collection('messages')
+        .orderBy('timeSent', descending: false)
+        .snapshots()
+        .asyncMap((event) async{
+          List<Messages> messages=[];
+     for(var doc in event.docs){
+       var message=Messages.fromJson(doc.data());
+       messages.add(message);
+     }
+          return messages;
+    });
+return messages;
+  }
+
 
   void sendTextMessage({
     required BuildContext context,
@@ -69,6 +122,7 @@ class ChatRepository {
         lastMessage: message,
         timeSent: timeSent,
         contactId: senderUser.uid!,
+        isOnline: senderUser.isOnline!,
         profileImage: senderUser.profileImage!);
     await firestore
         .collection('users')
@@ -83,7 +137,8 @@ class ChatRepository {
         lastMessage: message,
         timeSent: timeSent,
         contactId: receiverUser.uid!,
-        profileImage: receiverUser.profileImage!);
+        profileImage: receiverUser.profileImage!,
+        isOnline: receiverUser.isOnline!);
     await firestore
         .collection('users')
         .doc(senderUser.uid!)

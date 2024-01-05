@@ -1,10 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../colors.dart';
+import '../features/auth/controller/auth_controller.dart';
 import '../widgets/contacts_list.dart';
 
-class MobileLayoutScreen extends StatelessWidget {
+class MobileLayoutScreen extends ConsumerStatefulWidget {
   const MobileLayoutScreen({Key? key}) : super(key: key);
 
+  @override
+  ConsumerState<MobileLayoutScreen> createState() => _MobileLayoutScreenState();
+}
+
+class _MobileLayoutScreenState extends ConsumerState<MobileLayoutScreen>  with WidgetsBindingObserver{
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // TODO: implement didChangeAppLifecycleState
+    super.didChangeAppLifecycleState(state);
+    switch(state){
+      case AppLifecycleState.resumed:
+       ref.read(authControllerProvider).setUserState(true);
+        break;
+      case AppLifecycleState.inactive:
+        ref.read(authControllerProvider).setUserState(false);
+        break;
+      case AppLifecycleState.paused:
+        ref.read(authControllerProvider).setUserState(false);
+        break;
+      case AppLifecycleState.detached:
+        ref.read(authControllerProvider).setUserState(false);
+        break;
+        default:
+          print("default");
+          break;
+    }
+
+  }
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
