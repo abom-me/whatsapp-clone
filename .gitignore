@@ -45,6 +45,7 @@ app.*.map.json
 
 # Ios related files google service plist
 /ios/Runner/GoogleService-Info.plist
+/ios/irebase_app_id_file.json
 
 
 # Android related files google service json
