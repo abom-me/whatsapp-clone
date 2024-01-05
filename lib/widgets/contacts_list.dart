@@ -21,12 +21,13 @@ class ContactsList extends ConsumerWidget {
         stream: ref.watch(chatControllerProvider).getChatContacts(),
         builder: (context, snapshot) {
           if(snapshot.hasData){
+
             return ListView.builder(
               shrinkWrap: true,
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 var chatContact = snapshot.data![index];
-                print(chatContact.isOnline);
+
                 return Column(
                   children: [
                     InkWell(

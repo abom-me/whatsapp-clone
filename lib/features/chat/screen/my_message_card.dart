@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import '../colors.dart';
+import 'package:whatsapp_clone/common/enums/messages_enume.dart';
+import '../../../colors.dart';
+import 'display_text_image_gif.dart';
 
 class MyMessageCard extends StatelessWidget {
   final String message;
   final String date;
+  final MessageEnum type;
 
-  const MyMessageCard({Key? key, required this.message, required this.date}) : super(key: key);
+  const MyMessageCard({Key? key, required this.message, required this.date,required this.type}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +32,7 @@ class MyMessageCard extends StatelessWidget {
                   top: 5,
                   bottom: 20,
                 ),
-                child: Text(
-                  message,
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
+                child:DisplayTextImageGIF(message: message,type: type,)
               ),
               Positioned(
                 bottom: 4,

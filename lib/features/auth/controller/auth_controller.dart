@@ -52,4 +52,8 @@ final ProviderRef ref ;
   Stream<UserModel> userDataById(String uid){
     return authRepository.userData(uid);
   }
+
+  Future<UserModel> getUserDetails(String uid){
+    return authRepository.userDetails(uid);
+  }
 }

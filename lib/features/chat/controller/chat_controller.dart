@@ -1,7 +1,10 @@
 
 
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whatsapp_clone/common/enums/messages_enume.dart';
 import 'package:whatsapp_clone/common/global_keys.dart';
 import 'package:whatsapp_clone/models/messages_model.dart';
 
@@ -44,6 +47,20 @@ class ChatController{
       message: message,
       receiverId: receiverId,
       senderUser: userData,
+    );
+
+
+  }
+
+  void sendImageMessage(BuildContext context,File file,String receiverId,MessageEnum type){
+
+    chatRepository.sendFileMessage(
+      context: context,
+      file: file,
+      receiverId: receiverId,
+      senderUser: userData,
+      ref: ref,
+      messageType: type
     );
 
 

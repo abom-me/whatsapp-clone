@@ -109,4 +109,7 @@ Future<UserModel?> getCurrentUser() async {
 Stream<UserModel> userData(String userId)  {
 return  firebaseFirestore.collection("users").doc(userId).snapshots().map((event) => UserModel.fromJson(event.data() as Map<String,dynamic>));
 }
+Future<UserModel> userDetails(String userId)  {
+return  firebaseFirestore.collection("users").doc(userId).get().then((value) => UserModel.fromJson(value.data() as Map<String,dynamic>));
+}
 }

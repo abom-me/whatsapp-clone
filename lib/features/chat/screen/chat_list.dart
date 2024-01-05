@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:whatsapp_clone/common/global_keys.dart';
 import '../../../info.dart';
 import '../../../models/messages_model.dart';
-import '../../../widgets/my_message_card.dart';
-import '../../../widgets/sender_message_card.dart';
+import 'my_message_card.dart';
+import 'sender_message_card.dart';
 import '../controller/chat_controller.dart';
 
 
@@ -48,11 +48,13 @@ class _ChatListState extends ConsumerState<ChatList> {
                var messages = snapshot.data![index];
                if (messages.senderId == userData.uid) {
                  return MyMessageCard(
+                   type: messages.messageType,
                    message: messages.message.toString(),
                    date:  DateFormat.jm().format(messages.timeSent!),
                  );
                }
                return SenderMessageCard(
+                  type: messages.messageType,
                  message: messages.message.toString(),
                  date: DateFormat.jm().format(messages.timeSent!),
                );

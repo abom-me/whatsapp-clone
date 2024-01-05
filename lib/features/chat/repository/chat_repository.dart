@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:whatsapp_clone/common/enums/messages_enume.dart';
+import 'package:whatsapp_clone/common/repositoris/common_firebase_storage_repository.dart';
+import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/info.dart';
 import 'package:whatsapp_clone/models/chat_contact_model.dart';
 import 'package:whatsapp_clone/models/user_model.dart';
 
+import '../../../common/utils/utils.dart';
 import '../../../models/messages_model.dart';
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
@@ -16,43 +21,51 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
     firebaseAuth: FirebaseAuth.instance,
   );
 });
+
 class ChatRepository {
   final FirebaseFirestore firestore;
   final FirebaseAuth firebaseAuth;
 
   ChatRepository({required this.firestore, required this.firebaseAuth});
 
-
   Stream<List<ChatContactModel>> getChatContacts() {
-
     var currentUser = firebaseAuth.currentUser;
+    List<ChatContactModel> contacts = [];
     var chatContacts = firestore
         .collection('users')
         .doc(currentUser!.uid)
         .collection('chats')
         .orderBy('timeSent', descending: true)
         .snapshots()
-        .asyncMap((event) async{
-          List<ChatContactModel> contacts=[];
-     for(var doc in event.docs){
+        .asyncMap((event) async {
+      contacts.clear();
+for(var doc in event.docs){
 
-       var chatContact=ChatContactModel.fromJson(doc.data());
+  var chatContact = ChatContactModel.fromJson(doc.data());
+
+  var userData = await firestore
+      .collection('users')
+      .doc(chatContact.contactId)
+      .get();
+
+  var user = UserModel.fromJson(userData.data()!);
+
+  contacts.add(ChatContactModel(
+      name: user.name!,
+      lastMessage: chatContact.lastMessage,
+      timeSent: chatContact.timeSent!,
+      contactId: chatContact.contactId,
+      profileImage: user.profileImage!,
+      isOnline: user.isOnline!));
+}
 
 
-       var userData=await firestore.collection('users').doc(chatContact.contactId).get();
-       print(userData.data());
-var user=UserModel.fromJson(userData.data()!);
-
-       contacts.add(ChatContactModel(name: user.name!, lastMessage: chatContact.lastMessage, timeSent: chatContact.timeSent!, contactId: chatContact.contactId, profileImage: user.profileImage!, isOnline: user.isOnline!));
-       return contacts;
-     }
-          return contacts;
+      return contacts;
     });
-return chatContacts;
+    return chatContacts;
   }
 
-
-Stream<List<Messages>> getMessages({required String receiverId}) {
+  Stream<List<Messages>> getMessages({required String receiverId}) {
     var currentUser = firebaseAuth.currentUser;
     var messages = firestore
         .collection('users')
@@ -62,18 +75,71 @@ Stream<List<Messages>> getMessages({required String receiverId}) {
         .collection('messages')
         .orderBy('timeSent', descending: false)
         .snapshots()
-        .asyncMap((event) async{
-          List<Messages> messages=[];
-     for(var doc in event.docs){
-       var message=Messages.fromJson(doc.data());
-       messages.add(message);
-     }
-          return messages;
+        .asyncMap((event) async {
+      List<Messages> messages = [];
+      for (var doc in event.docs) {
+        var message = Messages.fromJson(doc.data());
+        messages.add(message);
+      }
+      return messages;
     });
-return messages;
+    return messages;
   }
 
+  void sendFileMessage({
+    required BuildContext context,
+    required File file,
+    required String receiverId,
+    required UserModel senderUser,
+    required ProviderRef ref,
+    required MessageEnum messageType,
+}) async{
+try {
+var timeSent = DateTime.now();
+UserModel receiverUserData;
+var messageId = Uuid().v1();
+final imageUrl=await ref.read(commonFirebaseStorageRepositoryProvider).storeFileToFirebase('chat/${messageType.value}/$messageId', file);
+receiverUserData = await ref.read(authControllerProvider).getUserDetails(receiverId);
+String contactMsg="";
+switch (messageType) {
+  case MessageEnum.image:
+    contactMsg = '📷 Photo';
+    break;
+  case MessageEnum.video:
+    contactMsg = '🎥 Video';
+    break;
+  case MessageEnum.audio:
+    contactMsg = '🎤 Audio';
+    break;
+    case MessageEnum.gif:
+    contactMsg = '👾 GIF';
+    break;
+  default:
+    contactMsg = 'File';
+}
+_saveDataToContactsSubCollection(
+senderUser: senderUser,
+receiverUser: receiverUserData,
+message: contactMsg,
+timeSent: timeSent,
+receiverId: receiverId,
+);
 
+_saveMessageToMessageSubCollection(
+senderUser: senderUser,
+receiverUser: receiverUserData,
+message: imageUrl,
+timeSent: timeSent,
+receiverId: receiverId,
+messageType: messageType,
+messageId: messageId,
+);
+
+}catch(e){
+  showSnackBar( context,e.toString());
+}
+
+  }
   void sendTextMessage({
     required BuildContext context,
     required String message,
@@ -102,8 +168,7 @@ return messages;
         timeSent: timeSent,
         receiverId: receiverId,
         messageType: MessageEnum.text,
-        messageId:messageId,
-
+        messageId: messageId,
       );
     } catch (e) {
       print(e);
@@ -147,16 +212,15 @@ return messages;
         .set(senderChatContact.toJson());
   }
 
-  _saveMessageToMessageSubCollection({
-    required UserModel senderUser,
-    required UserModel receiverUser,
-    required String message,
-    required DateTime timeSent,
-    required String receiverId,
-    required String messageId,
-    required MessageEnum messageType
-  }) async {
-    var messageData=Messages(
+  _saveMessageToMessageSubCollection(
+      {required UserModel senderUser,
+      required UserModel receiverUser,
+      required String message,
+      required DateTime timeSent,
+      required String receiverId,
+      required String messageId,
+      required MessageEnum messageType}) async {
+    var messageData = Messages(
       senderId: senderUser.uid!,
       receiverId: receiverId,
       message: message,
